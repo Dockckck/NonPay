@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.3",
+  "openapi": "3.0.0",
   "info": {
     "title": "NonPay API",
     "description": "NonPay Payment Processing API for collect (deposit) and disburse (withdrawal) operations",
