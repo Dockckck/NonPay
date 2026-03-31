@@ -4,16 +4,47 @@
     <meta charset="utf-8"/>
     <title>NonPay API Docs</title>
 
-    <!-- ВАЖНО: defer -->
     <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js" defer></script>
+
+    <style>
+      body {
+        margin: 0;
+        font-family: Inter, Arial, sans-serif;
+      }
+    </style>
   </head>
+
   <body>
-    <!-- ВАЖНО: добавляем container -->
     <div id="redoc-container"></div>
 
     <script>
       window.onload = function() {
-        Redoc.init("openapi.json", {}, document.getElementById("redoc-container"));
+        Redoc.init("openapi.json", {
+          
+          theme: {
+            colors: {
+              primary: {
+                main: "#0A2540"   // тёмно-синий как Stripe
+              }
+            },
+            typography: {
+              fontFamily: "Inter, Arial, sans-serif",
+              headings: {
+                fontFamily: "Inter, Arial, sans-serif"
+              }
+            },
+            sidebar: {
+              backgroundColor: "#F6F9FC"
+            }
+          },
+
+          // UX улучшения
+          hideDownloadButton: false,
+          expandResponses: "200,201",
+          requiredPropsFirst: true,
+          sortPropsAlphabetically: true,
+
+        }, document.getElementById("redoc-container"));
       };
     </script>
   </body>
