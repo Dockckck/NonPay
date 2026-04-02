@@ -96,7 +96,7 @@
         ]
       }
     },
-    "v1/payments/submit": {
+    "/submit": {
       "post": {
         "tags": ["Payments"],
         "summary": "Create Payment",
@@ -107,7 +107,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PaymentCreate"
+                "$ref": "#/components/schemas/PaymentCreateDTO"
               },
               "examples": {
                 "CollectUPIHeadless": {
@@ -201,7 +201,7 @@
                     },
                     "state": {
                       "type": "string",
-                      "enum": ["in_progress", "completed", "failed", "rejected", "charged_back"],
+                      "enum": ["in_progress", "completed", "failed", "rejected", "paid_adjusted", "paid_partial"],
                       "description": "Current transaction state"
                     },
                     "method": {
@@ -278,7 +278,7 @@
                       "txn_id": "019d4e2a-296e-7981-b2c3-181a679df8e6",
                       "method": "UPI",
                       "payment_link": null,
-                      "order_id": "order_4",
+                      "order_id": "order_20260402_001",
                       "state": "in_progress",
                       "client_amount": null,
                       "reject_reason": null,
@@ -288,8 +288,8 @@
                       "finalized_at": null,
                       "beneficiary_info": {
                         "type": "upi",
-                        "upi_account": "gpay-12195732109@axis",
-                        "qr_code_data": "upi://pay?pa=gpay-12195732109@axis&pn=True7&cu=INR&am=1000"
+                        "upi_account": "gpay-12195732109@okbizaxis",
+                        "qr_code_data": "upi://pay?pa=gpay-12195732109@okbizaxis&pn=True7&cu=INR&am=1000"
                       },
                       "deadline": null
                     }
@@ -299,8 +299,8 @@
                     "value": {
                       "txn_id": "019d4e2b-95e4-7fb2-a526-4a14507dec2b",
                       "method": "UPI",
-                      "payment_link": "https://url/cmnhgc8oi00bf7aqqfxq36wvs?method=upi&prevId=null",
-                      "order_id": "order_3",
+                      "payment_link": "https://paytopay3.pserv-iner.in/cmnhgc8oi00bf7aqqfxq36wvs?method=upi&prevId=null",
+                      "order_id": "order_20260402_002",
                       "state": "in_progress",
                       "client_amount": null,
                       "reject_reason": null,
@@ -318,7 +318,7 @@
                       "txn_id": "019d4e2f-cc14-7497-ae74-d710892817bd",
                       "method": "IMPS",
                       "payment_link": null,
-                      "order_id": "order_1",
+                      "order_id": "order_20260402_003",
                       "state": "in_progress",
                       "client_amount": null,
                       "reject_reason": null,
@@ -334,9 +334,9 @@
                     "summary": "UPI Disburse response",
                     "value": {
                       "txn_id": "019d4e2c-41a9-7234-c8d9-5e8f9a0b1c2d",
-                      "method": "UPI",
+                      "method": "IMPS",
                       "payment_link": null,
-                      "order_id": "order_2",
+                      "order_id": "order_20260402_004",
                       "state": "in_progress",
                       "client_amount": null,
                       "reject_reason": null,
@@ -388,6 +388,271 @@
           }
         ]
       }
+    },
+    "/v1/payments/{id}/query": {
+      "get": {
+        "tags": ["Payments"],
+        "summary": "Query Payment Status",
+        "description": "Retrieve the current status of a payment transaction by transaction ID or merchant order ID",
+        "operationId": "queryPaymentStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Transaction ID (txn_id) or merchant order ID (order_id)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sender_id",
+            "in": "query",
+            "description": "Merchant account identifier",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment status retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "txn_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "Transaction ID"
+                    },
+                    "order_id": {
+                      "type": "string",
+                      "description": "Merchant order ID"
+                    },
+                    "state": {
+                      "type": "string",
+                      "enum": ["in_progress", "completed", "failed", "rejected", "paid_adjusted", "paid_partial"],
+                      "description": "Current transaction state"
+                    },
+                    "method": {
+                      "type": "string",
+                      "description": "Payment method (UPI, IMPS, etc.)"
+                    },
+                    "gross_amount": {
+                      "type": "string",
+                      "description": "Original amount"
+                    },
+                    "client_amount": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Actual amount paid"
+                    },
+                    "ccy": {
+                      "type": "string",
+                      "description": "Currency code"
+                    },
+                    "submitted_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Submission timestamp"
+                    },
+                    "finalized_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true,
+                      "description": "Completion timestamp"
+                    },
+                    "reject_reason": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Rejection reason if failed"
+                    }
+                  },
+                  "required": ["txn_id", "order_id", "state", "gross_amount", "ccy", "submitted_at"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Payment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid API credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/payments/{id}/send_proof": {
+      "post": {
+        "tags": ["Payments"],
+        "summary": "Submit Payment Proof (UTR)",
+        "description": "Submit proof of payment (UTR - Unique Transaction Reference) for H2H mode transactions with supporting documents",
+        "operationId": "submitPaymentProof",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Transaction ID (txn_id)",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sender_id",
+            "in": "query",
+            "description": "Merchant account identifier",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["utr"],
+                "properties": {
+                  "utr": {
+                    "type": "string",
+                    "description": "Unique Transaction Reference (e.g., banking reference number)",
+                    "maxLength": 256
+                  },
+                  "proof_documents": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    },
+                    "description": "Supporting documents (screenshots, receipts, etc.). Max 5 files, 10MB each"
+                  }
+                }
+              },
+              "examples": {
+                "UTRSubmissionWithProof": {
+                  "summary": "Submit UTR with proof documents",
+                  "value": {
+                    "utr": "TXN202604021227591234567",
+                    "proof_documents": ["receipt.pdf", "screenshot.jpg"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Proof received and processing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "txn_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "Transaction ID"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["received", "processing", "verified"],
+                      "description": "Proof submission status"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Status message"
+                    }
+                  },
+                  "required": ["txn_id", "status"]
+                },
+                "examples": {
+                  "ProofReceived": {
+                    "summary": "Proof successfully received",
+                    "value": {
+                      "txn_id": "019d4e2a-296e-7981-b2c3-181a679df8e6",
+                      "status": "received",
+                      "message": "Proof documents received and queued for verification"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request (missing UTR or invalid documents)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Transaction not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid API credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -411,7 +676,7 @@
         },
         "required": ["error", "message"]
       },
-      "CollectInfo": {
+      "CollectInfoDTO": {
         "type": "object",
         "description": "Collect (deposit) credentials",
         "properties": {
@@ -435,14 +700,14 @@
           }
         }
       },
-      "DisburseInfo": {
+      "DisburseInfoDTO": {
         "type": "object",
         "description": "Disburse (withdrawal) credentials",
         "properties": {
           "receiver_name": {
             "type": "string",
             "maxLength": 256,
-            "description": "Real receiver name (required for IMPS or UPI disbursements)"
+            "description": "Receiver name (required for IMPS or UPI disbursements)"
           },
           "routing_code": {
             "type": "string",
@@ -492,7 +757,7 @@
           }
         }
       },
-      "PaymentCreate": {
+      "PaymentCreateDTO": {
         "type": "object",
         "description": "Payment creation request",
         "required": [
@@ -538,8 +803,8 @@
           },
           "method": {
             "type": "string",
-            "enum": ["upi", "upi_intent", "imps", "instant", "rapid"],
-            "description": "Payment method. instant - paytm ATM, rapid - phonepe ATM"
+            "enum": ["upi", "imps"],
+            "description": "Payment method"
           },
           "sender_id": {
             "type": "string",
@@ -549,7 +814,7 @@
           "sender_name": {
             "type": "string",
             "maxLength": 128,
-            "description": "Client name"
+            "description": "Merchant account name (optional)"
           },
           "return_page": {
             "type": "string",
@@ -561,10 +826,10 @@
             "description": "Whether to operate in headless mode (no redirect to payment page)"
           },
           "collect_details": {
-            "$ref": "#/components/schemas/CollectInfo"
+            "$ref": "#/components/schemas/CollectInfoDTO"
           },
           "disburse_details": {
-            "$ref": "#/components/schemas/DisburseInfo"
+            "$ref": "#/components/schemas/DisburseInfoDTO"
           },
           "traffic_type": {
             "type": "string",
