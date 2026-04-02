@@ -278,7 +278,7 @@
                       "txn_id": "019d4e2a-296e-7981-b2c3-181a679df8e6",
                       "method": "UPI",
                       "payment_link": null,
-                      "order_id": "order_20260402_001",
+                      "order_id": "order_4",
                       "state": "in_progress",
                       "client_amount": null,
                       "reject_reason": null,
@@ -288,8 +288,8 @@
                       "finalized_at": null,
                       "beneficiary_info": {
                         "type": "upi",
-                        "upi_account": "gpay-12195732109@okbizaxis",
-                        "qr_code_data": "upi://pay?pa=gpay-12195732109@okbizaxis&pn=True7&cu=INR&am=1000"
+                        "upi_account": "gpay-12195732109@axis",
+                        "qr_code_data": "upi://pay?pa=gpay-12195732109@axis&pn=True7&cu=INR&am=1000"
                       },
                       "deadline": null
                     }
@@ -299,8 +299,8 @@
                     "value": {
                       "txn_id": "019d4e2b-95e4-7fb2-a526-4a14507dec2b",
                       "method": "UPI",
-                      "payment_link": "https://paytopay3.pserv-iner.in/cmnhgc8oi00bf7aqqfxq36wvs?method=upi&prevId=null",
-                      "order_id": "order_20260402_002",
+                      "payment_link": "https://url/cmnhgc8oi00bf7aqqfxq36wvs?method=upi&prevId=null",
+                      "order_id": "order_3",
                       "state": "in_progress",
                       "client_amount": null,
                       "reject_reason": null,
@@ -318,7 +318,7 @@
                       "txn_id": "019d4e2f-cc14-7497-ae74-d710892817bd",
                       "method": "IMPS",
                       "payment_link": null,
-                      "order_id": "order_20260402_003",
+                      "order_id": "order_1",
                       "state": "in_progress",
                       "client_amount": null,
                       "reject_reason": null,
@@ -334,9 +334,9 @@
                     "summary": "UPI Disburse response",
                     "value": {
                       "txn_id": "019d4e2c-41a9-7234-c8d9-5e8f9a0b1c2d",
-                      "method": "IMPS",
+                      "method": "UPI",
                       "payment_link": null,
-                      "order_id": "order_20260402_004",
+                      "order_id": "order_2",
                       "state": "in_progress",
                       "client_amount": null,
                       "reject_reason": null,
