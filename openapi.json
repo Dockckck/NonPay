@@ -110,20 +110,6 @@
                 "$ref": "#/components/schemas/PaymentCreateDTO"
               },
               "examples": {
-                "CollectUPIHeadless": {
-                  "summary": "Collect payment via UPI (H2H mode)",
-                  "value": {
-                    "side": "collect",
-                    "flow": "peer",
-                    "order_id": "order_20260402_001",
-                    "gross_amount": "1000.00",
-                    "callback": "https://merchant.com/callback",
-                    "ccy": "INR",
-                    "method": "upi",
-                    "sender_id": "merchant_12345",
-                    "headless": true
-                  }
-                },
                 "CollectUPIWidget": {
                   "summary": "Collect payment via UPI (Widget mode)",
                   "value": {
@@ -137,6 +123,20 @@
                     "return_page": "https://merchant.com/return",
                     "sender_id": "merchant_12345",
                     "headless": false
+                  }
+                },
+                "CollectUPIHeadless": {
+                  "summary": "Collect payment via UPI (H2H mode)",
+                  "value": {
+                    "side": "collect",
+                    "flow": "peer",
+                    "order_id": "order_20260402_001",
+                    "gross_amount": "1000.00",
+                    "callback": "https://merchant.com/callback",
+                    "ccy": "INR",
+                    "method": "upi",
+                    "sender_id": "merchant_12345",
+                    "headless": true
                   }
                 },
                 "DisburseIMPS": {
@@ -288,8 +288,8 @@
                       "finalized_at": null,
                       "beneficiary_info": {
                         "type": "upi",
-                        "upi_account": "gpay-12195732109@okbizaxis",
-                        "qr_code_data": "upi://pay?pa=gpay-12195732109@okbizaxis&pn=True7&cu=INR&am=1000"
+                        "upi_account": "g12195732109@okb",
+                        "qr_code_data": "upi://pay?pa=g12195732109@okb&pn=True7&cu=INR&am=1000"
                       },
                       "deadline": null
                     }
@@ -299,7 +299,7 @@
                     "value": {
                       "txn_id": "019d4e2b-95e4-7fb2-a526-4a14507dec2b",
                       "method": "UPI",
-                      "payment_link": "https://paytopay3.pserv-iner.in/cmnhgc8oi00bf7aqqfxq36wvs?method=upi&prevId=null",
+                      "payment_link": "https://link/cmnhgc8oi00bf7aqqfxq36wvs?method=upi&prevId=null",
                       "order_id": "order_20260402_002",
                       "state": "in_progress",
                       "client_amount": null,
