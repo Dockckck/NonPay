@@ -2,7 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "NonPay API",
-    "description": "NonPay Payment Processing API for collect (deposit) and disburse (withdrawal) operations\n\n## Webhook Callbacks and Signature Verification\n\nWhen payment status changes occur, NonPay sends HTTP POST requests to your configured callback URL with transaction details. All callbacks include an RSA-SHA256 signature for verification.\n\n### Signature Verification\n\nEvery callback includes a `signature` header containing an RSA-SHA256 signature (base64-encoded) of the JSON request body. Verify this signature using the public RSA key provided in your API credentials panel.\n\n**Node.js verification example:**\n```javascript\nimport { createPublicKey, verify } from 'node:crypto';\n\nasync function verifyCallback(body, headers) {\n  const bodyString = JSON.stringify(body);\n  const signatureHeader = headers['signature'];\n  \n  const publicKey = createPublicKey({\n    key: YOUR_PUBLIC_KEY_FROM_PANEL,\n    format: 'pem'\n  });\n  \n  return verify(\n    'SHA256',\n    Buffer.from(bodyString),\n    publicKey,\n    Buffer.from(signatureHeader, 'base64')\n  );\n}\n```\n\n**Python verification example:**\n```python\nfrom cryptography.hazmat.primitives import hashes, serialization\nfrom cryptography.hazmat.primitives.asymmetric import padding\nimport base64\nimport json\n\ndef verify_callback(body, signature_header):\n    body_string = json.dumps(body, separators=(',', ':'), sort_keys=True)\n    signature_bytes = base64.b64decode(signature_header)\n    \n    public_key = serialization.load_pem_public_key(\n        YOUR_PUBLIC_KEY_FROM_PANEL.encode()\n    )\n    \n    public_key.verify(\n        signature_bytes,\n        body_string.encode(),\n        padding.PKCS1v15(),\n        hashes.SHA256()\n    )\n    return True\n```\n\n**PHP verification example:**\n```php\nfunction verifyCallback($body, $signatureHeader) {\n    $bodyString = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_SORT_KEYS);\n    $signature = base64_decode($signatureHeader);\n    \n    $publicKey = openssl_pkey_get_public(YOUR_PUBLIC_KEY_FROM_PANEL);\n    \n    return openssl_verify(\n        $bodyString,\n        $signature,\n        $publicKey,\n        OPENSSL_ALGO_SHA256\n    ) === 1;\n}\n```\n\n### Callback Response Handling\n\n- **HTTP 200/201**: Payment status change is confirmed and applied\n- **HTTP 405 (Method Not Allowed)**: Decline the status change (only valid for reversals and adjustments)\n- **Other 4xx/5xx**: Indicates delivery error; NonPay will retry for up to 24 hours\n\nAlways respond with correct HTTP status codes. Avoid other error responses during normal operation, as they trigger automatic retry mechanisms.\n\n### Callback Delivery and Retry\n\nCallbacks are delivered with exponential backoff retry logic over 24 hours. If your endpoint does not confirm receipt (200/201), the system will continue retrying. For status changes that require merchant confirmation (adjustments, reversals), responding with 405 reverts the transaction to its previous state.",
+    "description": "NonPay Payment Processing API for collect (deposit) and disburse (withdrawal) operations\n\n## Webhook Callbacks and Signature Verification\n\nWhen payment status changes occur, NonPay sends HTTP POST requests to your configured callback URL with transaction details. All callbacks include an RSA-SHA256 signature for verification.\n\n### Signature Verification\n\nEvery callback includes a `signature` header containing an RSA-SHA256 signature (base64-encoded) of the JSON request body. Verify this signature using the public RSA key provided in your API credentials panel.\n\n**Node.js verification example:**\n```javascript\nimport { createPublicKey, verify } from 'node:crypto';\n\nasync function verifyCallback(body, headers) {\n  const bodyString = JSON.stringify(body);\n  const signatureHeader = headers['signature'];\n  \n  const publicKey = createPublicKey({\n    key: YOUR_PUBLIC_KEY_FROM_PANEL,\n    format: 'pem'\n  });\n  \n  return verify(\n    'SHA256',\n    Buffer.from(bodyString),\n    publicKey,\n    Buffer.from(signatureHeader, 'base64')\n  );\n}\n```\n\n**Python verification example:**\n
+```python\nfrom cryptography.hazmat.primitives import hashes, serialization\nfrom cryptography.hazmat.primitives.asymmetric import padding\nimport base64\nimport json\n\ndef verify_callback(body, signature_header):\n    body_string = json.dumps(body, separators=(',', ':'), sort_keys=True)\n    signature_bytes = base64.b64decode(signature_header)\n    \n    public_key = serialization.load_pem_public_key(\n        YOUR_PUBLIC_KEY_FROM_PANEL.encode()\n    )\n    \n    public_key.verify(\n        signature_bytes,\n        body_string.encode(),\n        padding.PKCS1v15(),\n        hashes.SHA256()\n    )\n    return True\n```\n\n**PHP verification example:**\n```php\nfunction verifyCallback($body, $signatureHeader) {\n    $bodyString = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_SORT_KEYS);\n    $signature = base64_decode($signatureHeader);\n    \n    $publicKey = openssl_pkey_get_public(YOUR_PUBLIC_KEY_FROM_PANEL);\n    \n    return openssl_verify(\n        $bodyString,\n        $signature,\n        $publicKey,\n        OPENSSL_ALGO_SHA256\n    ) === 1;\n}\n```\n\n### Callback Response Handling\n\n- **HTTP 200/201**: Payment status change is confirmed and applied\n- **HTTP 405 (Method Not Allowed)**: Decline the status change (only valid for reversals and adjustments)\n- **Other 4xx/5xx**: Indicates delivery error; NonPay will retry for up to 24 hours\n\nAlways respond with correct HTTP status codes. Avoid other error responses during normal operation, as they trigger automatic retry mechanisms.\n\n### Callback Delivery and Retry\n\nCallbacks are delivered with exponential backoff retry logic over 24 hours. If your endpoint does not confirm receipt (200/201), the system will continue retrying. For status changes that require merchant confirmation (adjustments, reversals), responding with 405 reverts the transaction to its previous state.",
     "version": "2.2.1"
   },
   "servers": [
@@ -515,6 +516,88 @@
         ]
       }
     },
+    "/v1/payments/{id}/buyer_action": {
+      "post": {
+        "tags": ["Payments"],
+        "summary": "Track Buyer Intent (H2H Only)",
+        "description": "This endpoint should be called by the merchant when a customer interacts with the payment requisites in H2H mode (e.g., clicking the 'Copy' button on the merchant's checkout page). This allows NonPay to track statistical data on customer intent and identify if the customer attempted to pay after viewing the requisites.",
+        "operationId": "trackBuyerAction",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Unique transaction identifier (txn_id)",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["action", "sender_id"],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": ["copy_requisites"],
+                    "description": "The type of interaction performed by the buyer."
+                  },
+                  "sender_id": {
+                    "type": "string",
+                    "description": "Merchant account identifier."
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO 8601 timestamp of the action."
+                  }
+                }
+              },
+              "example": {
+                "action": "copy_requisites",
+                "sender_id": "merchant_12345",
+                "timestamp": "2026-04-30T15:00:00Z"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Action tracked successfully"
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Payment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
     "/v1/payments/{id}/send_proof": {
       "post": {
         "tags": ["Payments"],
@@ -910,70 +993,70 @@
             "description": "Traffic classification (optional)"
           }
         }
-      }
-    },
-    "WebhookPaymentCallback": {
-      "type": "object",
-      "description": "Webhook callback payload sent for payment status changes",
-      "properties": {
-        "txn_id": {
-          "type": "string",
-          "format": "uuid",
-          "description": "Unique transaction identifier"
-        },
-        "order_id": {
-          "type": "string",
-          "description": "Merchant order identifier"
-        },
-        "state": {
-          "type": "string",
-          "enum": ["in_progress", "completed", "failed", "rejected", "paid_adjusted", "paid_partial"],
-          "description": "Current transaction state"
-        },
-        "status": {
-          "type": "string",
-          "enum": ["pending", "success", "failed"],
-          "description": "Payment status"
-        },
-        "method": {
-          "type": "string",
-          "description": "Payment method used"
-        },
-        "gross_amount": {
-          "type": "string",
-          "description": "Total payment amount"
-        },
-        "client_amount": {
-          "type": "string",
-          "nullable": true,
-          "description": "Amount received by client"
-        },
-        "ccy": {
-          "type": "string",
-          "description": "Currency code (ISO 4217)"
-        },
-        "reject_reason": {
-          "type": "string",
-          "nullable": true,
-          "description": "Reason for rejection if payment failed"
-        },
-        "submitted_at": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Timestamp when payment was submitted"
-        },
-        "finalized_at": {
-          "type": "string",
-          "format": "date-time",
-          "nullable": true,
-          "description": "Timestamp when payment was finalized"
-        },
-        "sender_id": {
-          "type": "string",
-          "description": "Merchant account identifier"
-        }
       },
-      "required": ["txn_id", "order_id", "state", "status", "gross_amount", "ccy", "sender_id"]
+      "WebhookPaymentCallback": {
+        "type": "object",
+        "description": "Webhook callback payload sent for payment status changes",
+        "properties": {
+          "txn_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique transaction identifier"
+          },
+          "order_id": {
+            "type": "string",
+            "description": "Merchant order identifier"
+          },
+          "state": {
+            "type": "string",
+            "enum": ["in_progress", "completed", "failed", "rejected", "paid_adjusted", "paid_partial"],
+            "description": "Current transaction state"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "success", "failed"],
+            "description": "Payment status"
+          },
+          "method": {
+            "type": "string",
+            "description": "Payment method used"
+          },
+          "gross_amount": {
+            "type": "string",
+            "description": "Total payment amount"
+          },
+          "client_amount": {
+            "type": "string",
+            "nullable": true,
+            "description": "Amount received by client"
+          },
+          "ccy": {
+            "type": "string",
+            "description": "Currency code (ISO 4217)"
+          },
+          "reject_reason": {
+            "type": "string",
+            "nullable": true,
+            "description": "Reason for rejection if payment failed"
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when payment was submitted"
+          },
+          "finalized_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Timestamp when payment was finalized"
+          },
+          "sender_id": {
+            "type": "string",
+            "description": "Merchant account identifier"
+          }
+        },
+        "required": ["txn_id", "order_id", "state", "status", "gross_amount", "ccy", "sender_id"]
+      }
     },
     "securitySchemes": {
       "Bearer": {
