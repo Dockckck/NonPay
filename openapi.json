@@ -203,7 +203,7 @@
                     },
                     "method": {
                       "type": "string",
-                      "description": "Payment method used (UPI, IMPS, etc.)"
+                      "description": "Payment method used (UPI, IMPS, UPI_INTENT)"
                     },
                     "payment_link": {
                       "type": "string",
@@ -437,7 +437,7 @@
                     },
                     "method": {
                       "type": "string",
-                      "description": "Payment method (UPI, IMPS, etc.)"
+                      "description": "Payment method (UPI, IMPS, UPI_INTENT)"
                     },
                     "gross_amount": {
                       "type": "string",
@@ -956,7 +956,7 @@
           },
           "method": {
             "type": "string",
-            "enum": ["upi", "imps"],
+            "enum": ["upi", "upi_intent", "imps"],
             "description": "Payment method"
           },
           "sender_id": {
