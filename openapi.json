@@ -172,7 +172,11 @@
                     "method": "imps",
                     "sender_id": "merchant_12345",
                     "sender_name": "Merchant Store",
-                    "headless": false
+                    "headless": true,
+                    "disburse_details": {
+                      "full_name": "First Last",
+                      "upi_account": "firstlasty@okicici"
+                    }
                   }
                 }
               }
