@@ -172,11 +172,7 @@
                     "method": "imps",
                     "sender_id": "merchant_12345",
                     "sender_name": "Merchant Store",
-                    "headless": true,
-                    "disburse_details": {
-                      "receiver_name": "Alice Johnson",
-                      "upi_handle": "alice.johnson@okaxis"
-                    }
+                    "headless": false
                   }
                 }
               }
